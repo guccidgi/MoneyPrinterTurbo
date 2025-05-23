@@ -13,6 +13,11 @@
 __pycache__
 logs/
 
+# 環境變數文件 - 包含敏感信息
+.env
+.env.*
+!.env.example
+
 node_modules
 # VuePress 默认临时文件目录
 /sites/docs/.vuepress/.temp

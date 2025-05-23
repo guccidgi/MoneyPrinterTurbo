@@ -5,11 +5,23 @@ import socket
 import toml
 from loguru import logger
 
+# 導入環境變數配置模組
+from app.config.env_config import get_env_config
+
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 config_file = f"{root_dir}/config.toml"
 
+# 檢查是否在 Zeabur 或其他雲端環境中運行
+is_cloud_env = os.environ.get("ZEABUR") == "true" or os.environ.get("MPT_USE_ENV_CONFIG") == "true"
+
 
 def load_config():
+    # 如果在雲端環境中運行，優先使用環境變數配置
+    if is_cloud_env:
+        logger.info("Running in cloud environment, loading config from environment variables")
+        return get_env_config()
+    
+    # 否則從 config.toml 檔案讀取配置
     # fix: IsADirectoryError: [Errno 21] Is a directory: '/MoneyPrinterTurbo/config.toml'
     if os.path.isdir(config_file):
         shutil.rmtree(config_file)
@@ -33,6 +45,11 @@ def load_config():
 
 
 def save_config():
+    # 如果在雲端環境中運行，不允許保存配置到檔案
+    if is_cloud_env:
+        logger.warning("Running in cloud environment, cannot save config to file")
+        return
+    
     with open(config_file, "w", encoding="utf-8") as f:
         _cfg["app"] = app
         _cfg["azure"] = azure
